@@ -1,0 +1,165 @@
+package com.example.demo;
+
+import java.util.Map;
+import java.util.HashMap;
+
+public class ATMApplication {
+	private Map<String, User> users; // Store users
+    private User currentUser;
+    private InputOutputHelper ioHelper;
+
+    public ATMApplication() {
+        // Initialize users
+        users = new HashMap<>();
+        users.put("user1", new User("user1", "1234")); // Sample user
+        ioHelper = new InputOutputHelper();
+        
+    }
+
+    public void start() {
+        // Display login prompt and authenticate user
+        login();
+        // Once authenticated, display menu options and handle user input
+        showMenu();
+    }
+
+//    private void login() {
+//        ioHelper.displayMessage("Welcome to the ATM!");
+//        ioHelper.displayMessage("Please enter your user ID:");
+//        String userId = ioHelper.readInput();
+//        ioHelper.displayMessage("Please enter your PIN:");
+//        String pin = ioHelper.readInput();
+//        
+//        // Check if user exists and the entered PIN is correct
+//        if (users.containsKey(userId) && users.get(userId).getPin().equals(pin)) {
+//            currentUser = users.get(userId);
+//            ioHelper.displayMessage("Login successful. Welcome, " + userId + "!");
+//        } else {
+//            ioHelper.displayMessage("Invalid user ID or PIN. Please try again.");
+//            login(); // Recursive call to login again
+//        }
+//    }
+    
+  /*  private void login() {
+        ioHelper.displayMessage("Welcome to the ATM!");
+        ioHelper.displayMessage("Please enter your user ID:");
+        String userId = ioHelper.readInput().toLowerCase(); // Convert user ID to lowercase
+        ioHelper.displayMessage("Please enter your PIN:");
+        String pin = ioHelper.readInput();
+
+        // Check if user exists and the entered PIN is correct
+        if (users.containsKey(userId) && users.get(userId).getPin().equals(pin)) {
+            currentUser = users.get(userId);
+            ioHelper.displayMessage("Login successful. Welcome, " + userId + "!");
+        } else {
+            ioHelper.displayMessage("Invalid user ID or PIN. Please try again.");
+            login(); // Recursive call to login again
+        }
+    }
+*/
+    
+    private void login() {
+        ioHelper.displayMessage("Welcome to the ATM!");
+        ioHelper.displayMessage("Please enter your user ID:");
+        String userId = ioHelper.readInput().toLowerCase();
+        ioHelper.displayMessage("Please enter your PIN:");
+        String pin = ioHelper.readInput();
+
+        // Check if user exists and the entered PIN is correct (case-insensitive)
+        if (users.containsKey(userId) && users.get(userId).getPin().equalsIgnoreCase(pin)) {
+            currentUser = users.get(userId);
+            ioHelper.displayMessage("Login successful. Welcome, " + userId + "!");
+        } else {
+            ioHelper.displayMessage("Invalid user ID or PIN. Please try again.");
+            login(); // Recursive call to login again
+        }
+    }
+
+
+    private void showMenu() {
+        boolean running = true;
+        while (running) {
+            ioHelper.displayMessage("\nPlease select an option:");
+            ioHelper.displayMessage("1. Transactions History");
+            ioHelper.displayMessage("2. Withdraw");
+            ioHelper.displayMessage("3. Deposit");
+            ioHelper.displayMessage("4. Transfer");
+            ioHelper.displayMessage("5. Quit");
+            String choice = ioHelper.readInput();
+
+            switch (choice) {
+                case "1":
+                    showTransactionHistory();
+                    break;
+                case "2":
+                    withdraw();
+                    break;
+                case "3":
+                    deposit();
+                    break;
+                case "4":
+                    transfer();
+                    break;
+                case "5":
+                    running = false;
+                    break;
+                default:
+                    ioHelper.displayMessage("Invalid option. Please try again.");
+            }
+        }
+    }
+
+    private void showTransactionHistory() {
+        ioHelper.displayMessage("\nTransaction History:");
+        for (Transaction transaction : currentUser.getTransactionHistory()) {
+            ioHelper.displayMessage("Type: " + transaction.getType() +", from Account of user Id:"+transaction.getUserId() + ", Amount: " + transaction.getAmount() + ", Date: " + transaction.getDate());
+        }
+    }
+
+    private void withdraw() {
+        ioHelper.displayMessage("\nEnter amount to withdraw:");
+        double amount = Double.parseDouble(ioHelper.readInput());
+        if (amount > 0) {
+            currentUser.addTransaction(new Transaction("Withdraw", amount));
+            ioHelper.displayMessage("Withdrawal of $" + amount + " successful.");
+        } else {
+            ioHelper.displayMessage("Invalid amount. Please enter a positive number.");
+        }
+    }
+
+    private void deposit() {
+        ioHelper.displayMessage("\nEnter amount to deposit:");
+        double amount = Double.parseDouble(ioHelper.readInput());
+        if (amount > 0) {
+            currentUser.addTransaction(new Transaction("Deposit", amount));
+            ioHelper.displayMessage("Deposit of $" + amount + " successful.");
+        } else {
+            ioHelper.displayMessage("Invalid amount. Please enter a positive number.");
+        }
+    }
+
+    private void transfer() {
+        ioHelper.displayMessage("\nEnter recipient's user ID:");
+        String recipientId = ioHelper.readInput();
+        if (!users.containsKey(recipientId)) {
+            ioHelper.displayMessage("Recipient user ID not found.");
+            return;
+        }
+        ioHelper.displayMessage("Enter amount to transfer:");
+        double amount = Double.parseDouble(ioHelper.readInput());
+        if (amount <= 0) {
+            ioHelper.displayMessage("Invalid amount. Please enter a positive number.");
+            return;
+        }
+        if (currentUser == users.get(recipientId)) {
+            ioHelper.displayMessage("Cannot transfer to yourself.");
+            return;
+        }
+        currentUser.addTransaction(new Transaction("Transfer to " + recipientId, -amount));
+        users.get(recipientId).addTransaction(new Transaction("Transfer from " + currentUser.getUserId(), amount));
+        ioHelper.displayMessage("Transfer of $" + amount + " to " + recipientId + " successful.");
+    }
+
+	
+
+}
